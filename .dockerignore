@@ -1,0 +1,12 @@
+node_modules
+*/node_modules
+*/dist
+.env
+.env.*
+!.env.example
+*.log
+.git
+.gitignore
+frontend
+UI Reference
+*.md

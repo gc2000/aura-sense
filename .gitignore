@@ -1,0 +1,53 @@
+# Credentials & secrets — never commit
+serviceAccount.json
+*service-account*.json
+firebase-adminsdk*.json
+*.pem
+*.key
+
+# Dependencies
+node_modules/
+**/node_modules/
+.pnp
+.pnp.js
+
+# Environment variables — never commit secrets
+.env
+.env.local
+.env.production
+.env.*.local
+
+# Firebase
+.firebase/
+
+# Build outputs & archives
+dist/
+build/
+.next/
+*.zip
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editor
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing
+coverage/
+
+# TypeScript
+*.tsbuildinfo
