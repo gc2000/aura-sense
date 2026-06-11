@@ -88,20 +88,40 @@ export default function HomePage() {
   }, [triggerConfig, user, dataLoaded])
 
   // ── Gemini Live session ───────────────────────────────────────────────────
-  const { status, messages, connect, disconnect, clearMessages } = useAuraSession({
+  const { status, messages, connect, disconnect, clearMessages, resumeAudio } = useAuraSession({
     auraConfig,
     subAgents,
     memories: memoryCategories,
     videoRef,
   })
 
-  // Auto-connect once Firestore data is ready — no "Go Live" click required
-  const autoConnectedRef = useRef(false)
+  // Unlock AudioContext on first user interaction (mobile autoplay policy)
   useEffect(() => {
-    if (!dataLoaded || autoConnectedRef.current) return
-    autoConnectedRef.current = true
+    const unlock = () => resumeAudio()
+    document.addEventListener('touchstart', unlock, { once: true })
+    document.addEventListener('click', unlock, { once: true })
+    return () => {
+      document.removeEventListener('touchstart', unlock)
+      document.removeEventListener('click', unlock)
+    }
+  }, [resumeAudio])
+
+  // "Tap to Begin" overlay — shown until first user interaction unlocks AudioContext
+  const [audioUnlocked, setAudioUnlocked] = useState(false)
+
+  // Announce "Tap to Begin" via speechSynthesis once data is ready
+  useEffect(() => {
+    if (!dataLoaded || audioUnlocked) return
+    const msg = new SpeechSynthesisUtterance('Tap anywhere to begin')
+    msg.rate = 0.9
+    window.speechSynthesis.speak(msg)
+  }, [dataLoaded, audioUnlocked])
+
+  function handleTapToBegin() {
+    resumeAudio()
+    setAudioUnlocked(true)
     void connect()
-  }, [dataLoaded, connect])
+  }
 
   function handleDisconnect() {
     const nonSystem = messages.filter(m => m.role !== 'system')
@@ -281,6 +301,24 @@ export default function HomePage() {
           <p className="text-xs text-aura-text-muted tracking-widest uppercase">Loading…</p>
         </div>
       </div>
+    )
+  }
+
+  // "Tap to Begin" overlay — covers screen until user taps
+  if (!audioUnlocked) {
+    return (
+      <button
+        className="fixed inset-0 w-full h-full bg-aura-bg flex flex-col items-center justify-center gap-6 cursor-pointer"
+        onClick={handleTapToBegin}
+        aria-label="Touch or click anywhere to begin. Aura will connect and greet you."
+        autoFocus
+      >
+        <div className="w-16 h-16 rounded-full bg-aura-accent/20 flex items-center justify-center animate-pulse">
+          <div className="w-8 h-8 rounded-full bg-aura-accent" />
+        </div>
+        <p className="text-aura-text text-xl font-light tracking-widest uppercase">Touch to Begin</p>
+        <p className="text-aura-text-muted text-sm">Aura will connect and greet you</p>
+      </button>
     )
   }
 

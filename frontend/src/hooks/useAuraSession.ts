@@ -295,6 +295,10 @@ export function useAuraSession({
     }
   }, [])
 
+  const resumeAudio = useCallback(() => {
+    playerRef.current?.resume()
+  }, [])
+
 
   // ── Cleanup on unmount ────────────────────────────────────────────────────
   useEffect(() => {
@@ -319,6 +323,7 @@ export function useAuraSession({
     disconnect,
     sendText,
     sendVideoFrame,
+    resumeAudio,
     clearMessages: () => setMessages([]),
   }
 }

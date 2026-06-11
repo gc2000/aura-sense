@@ -39,6 +39,12 @@ export class AudioPlayer {
     this.nextStartTime = startAt + buffer.duration
   }
 
+  resume(): void {
+    if (this.audioContext?.state === 'suspended') {
+      void this.audioContext.resume()
+    }
+  }
+
   stop(): void {
     this.audioContext?.close()
     this.audioContext = null
