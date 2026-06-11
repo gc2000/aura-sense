@@ -5,6 +5,7 @@ export interface SubAgentConfig {
   description: string
   systemInstruction: string
   linkedMemorySummary?: string
+  internetSearchEnabled?: boolean
 }
 
 export interface SessionConfig {

@@ -95,6 +95,14 @@ export default function HomePage() {
     videoRef,
   })
 
+  // Auto-connect once Firestore data is ready — no "Go Live" click required
+  const autoConnectedRef = useRef(false)
+  useEffect(() => {
+    if (!dataLoaded || autoConnectedRef.current) return
+    autoConnectedRef.current = true
+    void connect()
+  }, [dataLoaded, connect])
+
   function handleDisconnect() {
     const nonSystem = messages.filter(m => m.role !== 'system')
     if (nonSystem.length > 0 && user) {

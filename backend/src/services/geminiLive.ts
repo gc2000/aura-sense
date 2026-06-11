@@ -32,6 +32,11 @@ export class GeminiLiveSession {
     const systemInstruction = buildSystemInstruction(config)
     const voiceName = VOICE_NAME_MAP[config.voiceModel] ?? 'Zephyr'
 
+    // Enable Google Search grounding if any agent in the session has it on
+    const searchEnabled =
+      config.internetSearchEnabled ||
+      (config.subAgents?.some(a => a.internetSearchEnabled) ?? false)
+
     this.session = await ai.live.connect({
       model: GEMINI_LIVE_MODEL,
       config: {
@@ -48,6 +53,7 @@ export class GeminiLiveSession {
             endOfSpeechSensitivity: EndSensitivity.END_SENSITIVITY_LOW,
           },
         },
+        ...(searchEnabled && { tools: [{ googleSearch: {} }] }),
       },
       callbacks: {
         onopen: () => {

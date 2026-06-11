@@ -28,6 +28,7 @@ function buildSessionConfig(
     description: agent.description,
     systemInstruction: agent.systemInstruction,
     linkedMemorySummary: buildMemorySummary(agent, memories),
+    internetSearchEnabled: agent.internetSearchEnabled,
   }))
 
   return {
