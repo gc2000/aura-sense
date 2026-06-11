@@ -2,15 +2,13 @@ import { NodeSDK } from '@opentelemetry/sdk-node'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
 import { resourceFromAttributes } from '@opentelemetry/resources'
 
-const apiKey = process.env.ARIZE_API_KEY
-const spaceId = process.env.ARIZE_SPACE_ID
+const apiKey = process.env.PHOENIX_API_KEY
 
-if (apiKey && spaceId) {
+if (apiKey) {
   const exporter = new OTLPTraceExporter({
-    url: 'https://otlp.arize.com/v1/traces',
+    url: 'https://app.phoenix.arize.com/v1/traces',
     headers: {
       'api_key': apiKey,
-      'space_id': spaceId,
     },
   })
 
@@ -21,10 +19,10 @@ if (apiKey && spaceId) {
 
   try {
     sdk.start()
-    console.info('[Tracing] Arize OpenTelemetry initialized')
+    console.info('[Tracing] Arize Phoenix OpenTelemetry initialized')
   } catch (err) {
-    console.warn('[Tracing] Failed to initialize Arize tracing:', err)
+    console.warn('[Tracing] Failed to initialize Phoenix tracing:', err)
   }
 } else {
-  console.info('[Tracing] ARIZE_API_KEY or ARIZE_SPACE_ID not set — tracing disabled')
+  console.info('[Tracing] PHOENIX_API_KEY not set — tracing disabled')
 }
