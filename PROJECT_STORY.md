@@ -22,6 +22,7 @@ Aura is a mobile Progressive Web App (PWA) that works like a knowledgeable compa
 - **Sees through your camera** — Aura streams live video frames to Gemini's multimodal understanding, letting it identify objects, read labels and medicines, describe environments, and locate misplaced items.
 - **Remembers what matters to you** — a personal memory system lets users store and retrieve context (their medication routine, where they keep their keys, their home layout) that Aura weaves into every response. Blind users can add or update memory items entirely by voice — no screen interaction required.
 - **Deploys specialized sub-agents** — a Manager Agent (Aura) orchestrates a team of purpose-built sub-agents: a Find Items agent, a Medication Helper that cross-references pill codes, and a Home Assistant that understands appliances and room layouts.
+- **Searches the internet for up-to-date information** — when enabled, Aura uses Google Search grounding to answer questions about current events, opening hours, transport schedules, and live information beyond its training data.
 - **Speaks your language** — Aura responds in the user's language automatically, supporting multilingual conversations without any configuration.
 - **Works on any phone, no install required** — delivered as a PWA, Aura runs in the browser with offline-ready service workers and is accessible from any mobile device.
 
