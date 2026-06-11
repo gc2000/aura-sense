@@ -1,5 +1,8 @@
 import { GoogleGenAI, Modality, StartSensitivity, EndSensitivity, type Session } from '@google/genai'
+import { trace, SpanStatusCode } from '@opentelemetry/api'
 import type { SessionConfig, ServerMessage } from '../types/websocket.js'
+
+const tracer = trace.getTracer('aura-gemini')
 
 export type GeminiMessageHandler = (msg: ServerMessage) => void
 
@@ -24,8 +27,18 @@ export class GeminiLiveSession {
   }
 
   async connect(config: SessionConfig): Promise<void> {
+    const span = tracer.startSpan('aura.gemini.connect')
+    span.setAttribute('gemini.model', GEMINI_LIVE_MODEL)
+    span.setAttribute('gemini.voice', VOICE_NAME_MAP[config.voiceModel] ?? 'Zephyr')
+    span.setAttribute('gemini.internet_search', config.internetSearchEnabled)
+    span.setAttribute('gemini.sub_agents_count', config.subAgents?.length ?? 0)
+
     const apiKey = process.env.GEMINI_API_KEY
-    if (!apiKey) throw new Error('GEMINI_API_KEY is not set')
+    if (!apiKey) {
+      span.setStatus({ code: SpanStatusCode.ERROR, message: 'GEMINI_API_KEY not set' })
+      span.end()
+      throw new Error('GEMINI_API_KEY is not set')
+    }
 
     const ai = new GoogleGenAI({ apiKey, httpOptions: { apiVersion: 'v1alpha' } })
 
@@ -37,6 +50,9 @@ export class GeminiLiveSession {
       config.internetSearchEnabled ||
       (config.subAgents?.some(a => a.internetSearchEnabled) ?? false)
 
+    span.setAttribute('gemini.search_grounding', searchEnabled)
+
+    try {
     this.session = await ai.live.connect({
       model: GEMINI_LIVE_MODEL,
       config: {
@@ -79,6 +95,14 @@ export class GeminiLiveSession {
         },
       },
     })
+      span.setStatus({ code: SpanStatusCode.OK })
+    } catch (err) {
+      span.recordException(err as Error)
+      span.setStatus({ code: SpanStatusCode.ERROR })
+      throw err
+    } finally {
+      span.end()
+    }
   }
 
   sendAudio(base64Data: string): void {

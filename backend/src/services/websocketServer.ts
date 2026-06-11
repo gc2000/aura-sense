@@ -1,13 +1,17 @@
 import { WebSocketServer, WebSocket } from 'ws'
 import type { IncomingMessage, Server } from 'http'
+import { trace, SpanStatusCode } from '@opentelemetry/api'
 import { GeminiLiveSession } from './geminiLive.js'
 import { adminAuth } from './firebaseAdmin.js'
 import type { ClientMessage, ServerMessage } from '../types/websocket.js'
+
+const tracer = trace.getTracer('aura-websocket')
 
 export function setupWebSocketServer(httpServer: Server): WebSocketServer {
   const wss = new WebSocketServer({ server: httpServer, path: '/ws' })
 
   wss.on('connection', (ws: WebSocket, req: IncomingMessage) => {
+    const sessionSpan = tracer.startSpan('aura.websocket.session')
     let gemini: GeminiLiveSession | null = null
     let userId: string | null = null
     let heartbeatInterval: ReturnType<typeof setInterval> | null = null
@@ -40,9 +44,13 @@ export function setupWebSocketServer(httpServer: Server): WebSocketServer {
       .verifyIdToken(token)
       .then(decoded => {
         userId = decoded.uid
+        sessionSpan.setAttribute('user.id', userId)
       })
       .catch((err: unknown) => {
         console.error('[WS auth] verifyIdToken failed:', err)
+        sessionSpan.recordException(err as Error)
+        sessionSpan.setStatus({ code: SpanStatusCode.ERROR, message: 'Auth failed' })
+        sessionSpan.end()
         sendToClient(ws, { type: 'error', message: 'Invalid auth token' })
         ws.close(1008, 'Unauthorized')
       })
@@ -63,14 +71,22 @@ export function setupWebSocketServer(httpServer: Server): WebSocketServer {
         case 'connect': {
           if (gemini) gemini.disconnect()
 
+          sessionSpan.addEvent('gemini_connect_requested', {
+            'gemini.internet_search': msg.config.internetSearchEnabled,
+            'gemini.sub_agents_count': msg.config.subAgents?.length ?? 0,
+          })
+
           gemini = new GeminiLiveSession(serverMsg => sendToClient(ws, serverMsg))
           sendToClient(ws, { type: 'status', status: 'connecting' })
 
           try {
             await gemini.connect(msg.config)
+            sessionSpan.addEvent('gemini_connect_success')
             startHeartbeat()
           } catch (err) {
             console.error('Gemini connect error:', err)
+            sessionSpan.recordException(err as Error)
+            sessionSpan.addEvent('gemini_connect_failed')
             sendToClient(ws, { type: 'error', message: 'Failed to connect to Gemini' })
             sendToClient(ws, { type: 'status', status: 'error' })
             gemini = null
@@ -111,6 +127,8 @@ export function setupWebSocketServer(httpServer: Server): WebSocketServer {
 
     // ── Cleanup ───────────────────────────────────────────────────────────────
     ws.on('close', () => {
+      sessionSpan.addEvent('session_closed')
+      sessionSpan.end()
       stopHeartbeat()
       gemini?.disconnect()
       gemini = null
@@ -118,6 +136,9 @@ export function setupWebSocketServer(httpServer: Server): WebSocketServer {
 
     ws.on('error', (err) => {
       console.error('WebSocket error:', err)
+      sessionSpan.recordException(err)
+      sessionSpan.setStatus({ code: SpanStatusCode.ERROR })
+      sessionSpan.end()
       stopHeartbeat()
       gemini?.disconnect()
       gemini = null

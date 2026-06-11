@@ -67,4 +67,5 @@ jobs:
             --region asia-southeast1 \
             --project gen-lang-client-0775423738 \
             --allow-unauthenticated \
+            --update-env-vars ARIZE_API_KEY=${{ secrets.ARIZE_API_KEY }},ARIZE_SPACE_ID=${{ secrets.ARIZE_SPACE_ID }} \
             --quiet
