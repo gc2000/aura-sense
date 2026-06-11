@@ -95,7 +95,14 @@ export default function HomePage() {
     videoRef,
   })
 
-  // Unlock AudioContext on first user interaction (mobile autoplay policy)
+  // Auto-connect once Firestore data is loaded
+  useEffect(() => {
+    if (!dataLoaded) return
+    void connect()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dataLoaded])
+
+  // Unlock AudioContext on first user interaction (browser autoplay policy)
   useEffect(() => {
     const unlock = () => resumeAudio()
     document.addEventListener('touchstart', unlock, { once: true })
@@ -105,23 +112,6 @@ export default function HomePage() {
       document.removeEventListener('click', unlock)
     }
   }, [resumeAudio])
-
-  // "Tap to Begin" overlay — shown until first user interaction unlocks AudioContext
-  const [audioUnlocked, setAudioUnlocked] = useState(false)
-
-  // Announce "Tap to Begin" via speechSynthesis once data is ready
-  useEffect(() => {
-    if (!dataLoaded || audioUnlocked) return
-    const msg = new SpeechSynthesisUtterance('Tap anywhere to begin')
-    msg.rate = 0.9
-    window.speechSynthesis.speak(msg)
-  }, [dataLoaded, audioUnlocked])
-
-  function handleTapToBegin() {
-    resumeAudio()
-    setAudioUnlocked(true)
-    void connect()
-  }
 
   function handleDisconnect() {
     const nonSystem = messages.filter(m => m.role !== 'system')
@@ -301,24 +291,6 @@ export default function HomePage() {
           <p className="text-xs text-aura-text-muted tracking-widest uppercase">Loading…</p>
         </div>
       </div>
-    )
-  }
-
-  // "Tap to Begin" overlay — covers screen until user taps
-  if (!audioUnlocked) {
-    return (
-      <button
-        className="fixed inset-0 w-full h-full bg-aura-bg flex flex-col items-center justify-center gap-6 cursor-pointer"
-        onClick={handleTapToBegin}
-        aria-label="Touch or click anywhere to begin. Aura will connect and greet you."
-        autoFocus
-      >
-        <div className="w-16 h-16 rounded-full bg-aura-accent/20 flex items-center justify-center animate-pulse">
-          <div className="w-8 h-8 rounded-full bg-aura-accent" />
-        </div>
-        <p className="text-aura-text text-xl font-light tracking-widest uppercase">Tap to Start</p>
-        <p className="text-aura-text-muted text-sm">Aura will connect and greet you</p>
-      </button>
     )
   }
 

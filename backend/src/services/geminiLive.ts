@@ -78,7 +78,7 @@ export class GeminiLiveSession {
           this.send({ type: 'status', status: 'connected' })
         },
         onmessage: (message) => {
-          console.info('Gemini Live: message received', JSON.stringify(message).slice(0, 200))
+          console.info('Gemini Live: message received type=', Object.keys(message ?? {}), JSON.stringify(message).slice(0, 150))
           this.handleGeminiMessage(message)
         },
         onerror: (err) => {
@@ -87,7 +87,9 @@ export class GeminiLiveSession {
           this.send({ type: 'status', status: 'error' })
         },
         onclose: (event) => {
-          console.info('Gemini Live: session closed', JSON.stringify(event))
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const e = event as any
+          console.info(`Gemini Live: session closed code=${e?.code ?? '?'} reason="${e?.reason ?? ''}" wasClean=${e?.wasClean ?? '?'}`)
           if (!this.closed) {
             this.send({ type: 'disconnected' })
             this.send({ type: 'status', status: 'disconnected' })
