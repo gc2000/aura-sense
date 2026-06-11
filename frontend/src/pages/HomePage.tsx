@@ -316,7 +316,7 @@ export default function HomePage() {
         <div className="w-16 h-16 rounded-full bg-aura-accent/20 flex items-center justify-center animate-pulse">
           <div className="w-8 h-8 rounded-full bg-aura-accent" />
         </div>
-        <p className="text-aura-text text-xl font-light tracking-widest uppercase">Touch to Begin</p>
+        <p className="text-aura-text text-xl font-light tracking-widest uppercase">Tap to Start</p>
         <p className="text-aura-text-muted text-sm">Aura will connect and greet you</p>
       </button>
     )
