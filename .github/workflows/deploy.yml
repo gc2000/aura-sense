@@ -67,5 +67,6 @@ jobs:
             --region asia-southeast1 \
             --project gen-lang-client-0775423738 \
             --allow-unauthenticated \
+            --timeout 3600 \
             --update-env-vars PHOENIX_API_KEY=${{ secrets.PHOENIX_API_KEY }} \
             --quiet
