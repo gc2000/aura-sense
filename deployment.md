@@ -79,7 +79,7 @@ Both services run under the Google Cloud project **`gen-lang-client-0775423738`*
 | GCP / Auth / Firestore Project | gen-lang-client-0775423738 |
 | Build tool | Vite + React 18 + TypeScript |
 | Build output | `frontend/dist/` |
-| Deploy via | Google Cloud Shell (corporate Zscaler proxy blocks local Firebase CLI auth) |
+| Deploy via | GitHub Actions CI/CD (git push to master) or manually via Google Cloud Shell |
 | Google Sign-in | `signInWithPopup` with `Cross-Origin-Opener-Policy: same-origin-allow-popups` header |
 
 **Key environment variables (build-time, `frontend/.env.production`):**
@@ -113,7 +113,7 @@ VITE_API_URL=http://localhost:3001
 | Latest revision | aura-backend-00015-7mr |
 | Container image | Artifact Registry → `cloud-run-source-deploy/aura-backend` |
 | Port | 8080 |
-| Authentication | `--no-allow-unauthenticated` (Firebase token required) |
+| Authentication | `--allow-unauthenticated` (Cloud Run layer open; Firebase token validated by backend code) |
 
 **Runtime environment variables (set in Cloud Run):**
 
@@ -124,6 +124,8 @@ FIREBASE_CLIENT_EMAIL=firebase-adminsdk-fbsvc@gen-lang-client-0775423738.iam.gse
 GEMINI_API_KEY=<AIzaSy... key from Google AI Studio (39 chars)>
 FRONTEND_URL=https://aurasense3.web.app
 FIREBASE_PRIVATE_KEY=<from Secret Manager: firebase-private-key>
+ARIZE_API_KEY=<JWT token from Arize dashboard>
+ARIZE_SPACE_ID=<space ID from Arize dashboard>
 ```
 
 ---
@@ -168,17 +170,38 @@ Accessed by: 430124522662-compute@developer.gserviceaccount.com
 
 ## Deployment Flow
 
-### Deploy Backend
+### Automatic (CI/CD) — Recommended
+
+Every `git push` to `master` automatically deploys both services via GitHub Actions (`.github/workflows/deploy.yml`):
+
+```
+git push origin master
+  └─ GitHub Actions triggered
+       ├─ Frontend job → npm ci → npm run build → firebase deploy (aurasense3)
+       └─ Backend job  → gcloud run deploy --source backend (asia-southeast1)
+```
+
+**GitHub Secrets required:**
+
+| Secret | Purpose |
+|--------|---------|
+| `FIREBASE_SERVICE_ACCOUNT_AURASENSE3` | Firebase Hosting deployment |
+| `GCP_SA_KEY` | Cloud Run deployment (service account JSON) |
+| `VITE_FIREBASE_API_KEY` … `VITE_API_URL` | Frontend build-time env vars (7 secrets) |
+| `ARIZE_API_KEY` | Arize observability (injected via `--update-env-vars`) |
+| `ARIZE_SPACE_ID` | Arize observability (injected via `--update-env-vars`) |
+
+---
+
+### Manual Deploy Backend (fallback)
 
 ```bash
 # From Cloud Shell
-cd ~/aura-sense4
-
 gcloud run deploy aura-backend \
   --source backend \
   --region asia-southeast1 \
   --project gen-lang-client-0775423738 \
-  --no-allow-unauthenticated
+  --allow-unauthenticated
 ```
 
 Cloud Build automatically:
@@ -186,7 +209,7 @@ Cloud Build automatically:
 2. Builds container image and pushes to Artifact Registry
 3. Deploys new Cloud Run revision
 
-### Deploy Frontend
+### Manual Deploy Frontend (fallback)
 
 > **Note:** Use Google Cloud Shell — corporate Zscaler proxy blocks local Firebase CLI auth.
 
@@ -259,6 +282,23 @@ Firebase Hosting Project: aurasense3
 └── Hosting → https://aurasense3.web.app
     └── firebase.json: public=frontend/dist, SPA rewrite, COOP header
 ```
+
+---
+
+## Observability — Arize
+
+The backend emits OpenTelemetry traces to Arize cloud (`https://otlp.arize.com/v1/traces`).
+
+**Spans captured:**
+
+| Span | Attributes |
+|------|-----------|
+| `aura.websocket.session` | `user.id`, connect/disconnect events, errors |
+| `aura.gemini.connect` | `gemini.model`, `gemini.voice`, `gemini.internet_search`, `gemini.sub_agents_count`, `gemini.search_grounding` |
+
+Tracing is non-blocking — if `ARIZE_API_KEY` / `ARIZE_SPACE_ID` are unset or Arize is unreachable, the backend runs normally and spans are silently dropped.
+
+**Dashboard:** https://app.arize.com (Space: `guchao1000`)
 
 ---
 

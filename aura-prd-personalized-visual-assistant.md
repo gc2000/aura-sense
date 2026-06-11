@@ -34,16 +34,19 @@ Aura is not positioned as a real-time obstacle avoidance or hazard navigation to
 
 ## 4. 技术栈
 
-- Frontend: React, Tailwind CSS, PWA
-- Backend: TypeScript/Node.js
-- Multimodal AI: Google Gemini Live API / Multimodal Live API
-- Agent Framework: Google Agent Development Kit, ADK
-- 支持 WebSocket 以支持实时互动
-- Deployment: Google Agent Platform (prefer in Singapore region)
-- Configuration: `.env` / environment variables
+- Frontend: React 18 + TypeScript, Tailwind CSS, PWA (Workbox)
+- Backend: TypeScript/Node.js, deployed on Google Cloud Run (asia-southeast1)
+- Multimodal AI: Google Gemini Live API (gemini-3.1-flash-live-preview, v1alpha)
+- Internet Search: Google Search grounding via Gemini `tools: [{ googleSearch: {} }]`
+- Agent Framework: Custom Manager Agent + Subagents via System Instructions
+- Realtime transport: WebSocket with heartbeat monitoring and exponential-backoff auto-reconnect
+- Deployment: Google Cloud Run (backend) + Firebase Hosting (frontend)
+- CI/CD: GitHub Actions — auto-deploy on git push to master
+- Observability: Arize OpenTelemetry — session and Gemini connect tracing
+- Persistence: Firestore (named database "aura", region: asia-southeast1)
+- Configuration: `.env` / environment variables / GitHub Secrets
 - Security: 禁止硬编码 API key、password、credential
-- Use type hints for all Python code.
-- Comments generated should be in english
+- Comments generated should be in English
 - Implement robust error handling for API calls.
 - 自动生成lint和unit test用例，每次完成一个功能，都必须进行测试。
 - Code and comments should be in English
@@ -344,6 +347,11 @@ Agent 可在用户允许的情况下搜索互联网。
 - 查询产品公开信息。
 - 查询无障碍相关公开信息。
 
+实现方式：
+
+- 通过 Gemini `tools: [{ googleSearch: {} }]` 启用 Google Search grounding。
+- 在 AgentConfig 中 `internetSearchEnabled: true` 时激活，主 Agent 或任意 Subagent 均可独立开启。
+
 限制：
 
 - 联网搜索结果必须标明不确定性。
@@ -391,11 +399,13 @@ Agent 可在用户允许的情况下搜索互联网。
 
 Auto Retry 要求：
 
-- 云端连接断开时自动重试。
+- App 启动后**自动连接**，无需用户点击任何按钮。
+- 连接成功后 Aura 主动问候用户。
+- 云端连接断开时自动重试（指数退避：1s, 2s, 4s … 最长 30s，最多 8 次）。
+- 后端每 30 秒发送心跳，前端若 75 秒未收到则触发重连。
 - 重试期间语音提醒用户。
 - 避免频繁重复播报造成干扰。
-- 多次失败后提供清晰状态。
-- 允许用户手动重新连接。
+- 多次失败后提供清晰状态，并显示”Reconnect”按钮供用户手动重连。
 
 ## 17. 震动反馈
 

@@ -45,12 +45,14 @@ These are just a starting point. With a live camera, real-time voice conversatio
 | Layer | Technology |
 |-------|-----------|
 | Frontend | React 18 + TypeScript + Tailwind CSS, Vite, PWA (Workbox) |
-| Realtime transport | WebSocket (custom protocol) with heartbeat health monitoring |
-| AI backbone | Google Gemini |
+| Realtime transport | WebSocket (custom protocol) with heartbeat health monitoring and auto-reconnect |
+| AI backbone | Google Gemini Live API (gemini-3.1-flash-live-preview) with Google Search grounding |
 | Multi-agent orchestration | Custom Manager Agent + Subagents via System instructions |
-| Backend | Node.js + Express, deployed on Google Cloud Run|
+| Backend | Node.js + Express, deployed on Google Cloud Run |
 | Persistence | Firestore (named database "aura") — conversations, memories, agent configs |
-| Hosting | Firebase Hosting |
+| Hosting | Firebase Hosting (aurasense3.web.app) |
+| CI/CD | GitHub Actions — auto-deploy on git push to master |
+| Observability | Arize (OpenTelemetry) — WebSocket session and Gemini connect tracing |
 
 The architecture separates concerns cleanly: the frontend handles UI, audio capture, and camera streaming; the Cloud Run backend acts as a secure proxy between the browser and the Gemini Live API, verifying Firebase ID tokens and managing session lifecycle.
 
@@ -70,9 +72,12 @@ The architecture separates concerns cleanly: the frontend handles UI, audio capt
 ## Accomplishments that we're aiming for
 
 - A working, deployable PWA that a blind user can pick up and use independently or with limited assistance
+- Auto-connects on launch and greets the user immediately — zero button presses required
+- Real internet search grounding via Google Search, so Aura can answer questions about current events, opening hours, and live information
 - A persistent, growing personal memory that makes every conversation more useful than the last
 - A multi-agent architecture where Aura seamlessly hands off tasks to the right specialist (Medication Helper, Find Items, Home Assistant) without the user needing to know which agent is active
-- Reliable connection on mobile networks, staying live through background tabs and flaky Wi-Fi
+- Reliable connection on mobile networks, staying live through background tabs and flaky Wi-Fi, with automatic reconnection
+- Production-grade observability via Arize — every session is traced end-to-end
 
 ---
 
