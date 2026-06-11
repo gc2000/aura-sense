@@ -66,5 +66,5 @@ jobs:
             --source backend \
             --region asia-southeast1 \
             --project gen-lang-client-0775423738 \
-            --no-allow-unauthenticated \
+            --allow-unauthenticated \
             --quiet
