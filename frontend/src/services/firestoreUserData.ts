@@ -13,7 +13,7 @@ import {
 import { db } from './firebase'
 import type { AgentConfig, Conversation } from '@/types'
 import { type TriggerConfig, DEFAULT_TRIGGER_CONFIG } from './triggerConfig'
-import { mockAuraConfig } from '@/data/mockData'
+import { mockAuraConfig, mockSubAgents } from '@/data/mockData'
 
 const MAX_CONVERSATIONS = 50
 
@@ -31,6 +31,23 @@ export async function loadAgentConfigFromFirestore(userId: string): Promise<Agen
 
 export async function saveAgentConfigToFirestore(userId: string, config: AgentConfig): Promise<void> {
   await setDoc(doc(db, 'agent_configs', userId), config)
+}
+
+// ─── Sub-agents ───────────────────────────────────────────────────────────────
+
+export async function loadSubAgentsFromFirestore(userId: string): Promise<AgentConfig[]> {
+  try {
+    const snap = await getDoc(doc(db, 'sub_agents', userId))
+    if (!snap.exists()) return mockSubAgents.map(a => ({ ...a, userId }))
+    const data = snap.data() as { agents: AgentConfig[] }
+    return data.agents ?? mockSubAgents.map(a => ({ ...a, userId }))
+  } catch {
+    return mockSubAgents.map(a => ({ ...a, userId }))
+  }
+}
+
+export async function saveSubAgentsToFirestore(userId: string, agents: AgentConfig[]): Promise<void> {
+  await setDoc(doc(db, 'sub_agents', userId), { agents })
 }
 
 // ─── Trigger Config ──────────────────────────────────────────────────────────

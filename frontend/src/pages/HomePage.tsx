@@ -21,6 +21,8 @@ import {
 import {
   loadAgentConfigFromFirestore,
   saveAgentConfigToFirestore,
+  loadSubAgentsFromFirestore,
+  saveSubAgentsToFirestore,
   loadTriggerConfigFromFirestore,
   saveTriggerConfigToFirestore,
   loadConversationsFromFirestore,
@@ -54,11 +56,13 @@ export default function HomePage() {
     setDataLoaded(false)
     void Promise.all([
       loadAgentConfigFromFirestore(user.id),
+      loadSubAgentsFromFirestore(user.id),
       loadTriggerConfigFromFirestore(user.id),
       loadConversationsFromFirestore(user.id),
       fetchMemoriesFromFirestore(user.id),
-    ]).then(([agentCfg, triggerCfg, conversations, memories]) => {
+    ]).then(([agentCfg, agents, triggerCfg, conversations, memories]) => {
       setAuraConfig(agentCfg)
+      setSubAgents(agents)
       setTriggerConfig(triggerCfg)
       setPastConversations(conversations)
       setMemoryCategories(memories)
@@ -76,6 +80,16 @@ export default function HomePage() {
     }, 1000)
     return () => { if (agentSaveTimer.current) clearTimeout(agentSaveTimer.current) }
   }, [auraConfig, user, dataLoaded])
+
+  const subAgentsSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  useEffect(() => {
+    if (!user || !dataLoaded) return
+    if (subAgentsSaveTimer.current) clearTimeout(subAgentsSaveTimer.current)
+    subAgentsSaveTimer.current = setTimeout(() => {
+      void saveSubAgentsToFirestore(user.id, subAgents)
+    }, 1000)
+    return () => { if (subAgentsSaveTimer.current) clearTimeout(subAgentsSaveTimer.current) }
+  }, [subAgents, user, dataLoaded])
 
   const triggerSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   useEffect(() => {
