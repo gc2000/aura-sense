@@ -3,22 +3,23 @@ import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
 import { resourceFromAttributes } from '@opentelemetry/resources'
 
 const apiKey = process.env.PHOENIX_API_KEY
-const collectorEndpoint = process.env.PHOENIX_COLLECTOR_ENDPOINT ?? 'https://app.phoenix.arize.com'
+// Use || so empty string also falls back to the default endpoint
+const collectorEndpoint = process.env.PHOENIX_COLLECTOR_ENDPOINT || 'https://app.phoenix.arize.com'
 
 if (apiKey) {
-  const exporter = new OTLPTraceExporter({
-    url: `${collectorEndpoint}/v1/traces`,
-    headers: {
-      'api_key': apiKey,
-    },
-  })
-
-  const sdk = new NodeSDK({
-    resource: resourceFromAttributes({ 'service.name': 'aura-backend' }),
-    traceExporter: exporter,
-  })
-
   try {
+    const exporter = new OTLPTraceExporter({
+      url: `${collectorEndpoint}/v1/traces`,
+      headers: {
+        'api_key': apiKey,
+      },
+    })
+
+    const sdk = new NodeSDK({
+      resource: resourceFromAttributes({ 'service.name': 'aura-backend' }),
+      traceExporter: exporter,
+    })
+
     sdk.start()
     console.info('[Tracing] Arize Phoenix OpenTelemetry initialized')
   } catch (err) {
