@@ -3,10 +3,11 @@ import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
 import { resourceFromAttributes } from '@opentelemetry/resources'
 
 const apiKey = process.env.PHOENIX_API_KEY
+const collectorEndpoint = process.env.PHOENIX_COLLECTOR_ENDPOINT ?? 'https://app.phoenix.arize.com'
 
 if (apiKey) {
   const exporter = new OTLPTraceExporter({
-    url: 'https://app.phoenix.arize.com/v1/traces',
+    url: `${collectorEndpoint}/v1/traces`,
     headers: {
       'api_key': apiKey,
     },

@@ -35,10 +35,11 @@ Aura is a mobile Progressive Web App (PWA) that works like a knowledgeable compa
 | **Finding misplaced items** | "Aura, help me find my keys" — the Find Items sub-agent uses live camera vision and memory of usual storage spots to guide the user. |
 | **Leave-home checklist** | "Aura, run my leave-home checklist" — Aura reads out the user's saved checklist (e.g. phone, wallet, keys, medication) item by item. |
 | **Environment description** | "Describe what's around me" — Aura narrates the surrounding environment, identifying furniture, signage, people, and obstacles. |
+| **Toilet sign identification** | "Which toilet should I use?" — Aura reads the male/female signage on restroom doors via the camera and instructs the user which direction to enter, giving them independence in public spaces without needing to ask a stranger. |
 | **Personal health check** | For female blind users, Aura can help identify visual cues such as checking toilet paper for signs of menstruation — a private, dignified task that is otherwise difficult without sight. |
 | **Local news, promotions & events** | "Aura, any good deals at the nearby supermarket this week?" or "What's on at the community centre today?" — Aura searches the internet to surface relevant local news, promotions, and events in real time. |
 
-These are just a starting point. With a live camera, real-time voice conversation, personal memory, environment understanding, and a team of specialized sub-agents working together, users will naturally discover their own use cases — ones we haven't imagined yet. That open-ended capability is central to Aura's design.
+These are just a starting point. With a live camera, real-time voice conversation, personal memory, environment understanding, internet access,  and a team of specialized sub-agents working together, users will naturally discover their own use cases — ones we haven't imagined yet. That open-ended capability is central to Aura's design.
 
 ---
 

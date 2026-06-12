@@ -68,5 +68,5 @@ jobs:
             --project gen-lang-client-0775423738 \
             --allow-unauthenticated \
             --timeout 3600 \
-            --update-env-vars PHOENIX_API_KEY=${{ secrets.PHOENIX_API_KEY }} \
+            --update-env-vars PHOENIX_API_KEY=${{ secrets.PHOENIX_API_KEY }},PHOENIX_COLLECTOR_ENDPOINT=${{ secrets.PHOENIX_COLLECTOR_ENDPOINT }} \
             --quiet
