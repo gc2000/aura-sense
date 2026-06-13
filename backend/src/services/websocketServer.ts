@@ -15,7 +15,6 @@ export function setupWebSocketServer(httpServer: Server): WebSocketServer {
     let gemini: GeminiLiveSession | null = null
     let userId: string | null = null
     let heartbeatInterval: ReturnType<typeof setInterval> | null = null
-    let userDisconnecting = false
 
     function startHeartbeat() {
       stopHeartbeat()
@@ -77,15 +76,7 @@ export function setupWebSocketServer(httpServer: Server): WebSocketServer {
             'gemini.sub_agents_count': msg.config.subAgents?.length ?? 0,
           })
 
-          gemini = new GeminiLiveSession(serverMsg => {
-            sendToClient(ws, serverMsg)
-            // When Gemini closes unexpectedly (not by user), close the WS so the
-            // frontend auto-reconnect mechanism kicks in and restores the session.
-            if (serverMsg.type === 'disconnected' && !userDisconnecting) {
-              stopHeartbeat()
-              ws.close(1011, 'Gemini session closed unexpectedly')
-            }
-          })
+          gemini = new GeminiLiveSession(serverMsg => sendToClient(ws, serverMsg))
           sendToClient(ws, { type: 'status', status: 'connecting' })
 
           try {
@@ -124,13 +115,11 @@ export function setupWebSocketServer(httpServer: Server): WebSocketServer {
         }
 
         case 'disconnect': {
-          userDisconnecting = true
           stopHeartbeat()
           gemini?.disconnect()
           gemini = null
           sendToClient(ws, { type: 'disconnected' })
           sendToClient(ws, { type: 'status', status: 'disconnected' })
-          userDisconnecting = false
           break
         }
       }

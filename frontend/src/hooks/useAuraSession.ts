@@ -89,8 +89,9 @@ export function useAuraSession({
   const cameraRef = useRef<CameraCapture | null>(null)
   const announcerRef = useRef<VoiceAnnouncer>(new VoiceAnnouncer())
   const mountedRef = useRef(true)
-  // true when the user explicitly clicked Disconnect — suppresses auto-reconnect
   const intentionalDisconnectRef = useRef(false)
+  // Last config sent — used to reconnect Gemini without tearing down the WebSocket
+  const lastConfigRef = useRef<import('@/types/websocket').SessionConfig | null>(null)
 
   const updateStatus = useCallback((s: ConnectionStatus) => {
     if (!mountedRef.current) return
@@ -164,6 +165,7 @@ export function useAuraSession({
     wsRef.current?.disconnect()
 
     const config = buildSessionConfig(auraConfig, subAgents, memories)
+    lastConfigRef.current = config
 
     const ws = new AuraWebSocketClient((msg) => {
       if (!mountedRef.current) return
@@ -205,6 +207,15 @@ export function useAuraSession({
 
         case 'disconnected':
           updateStatus('disconnected')
+          // Gemini closed unexpectedly — reconnect just the Gemini session without
+          // tearing down the WebSocket (avoids the slow auto-reconnect backoff delay).
+          if (!intentionalDisconnectRef.current && lastConfigRef.current && wsRef.current?.isOpen()) {
+            setTimeout(() => {
+              if (mountedRef.current && wsRef.current?.isOpen() && lastConfigRef.current) {
+                ws.send({ type: 'connect', config: lastConfigRef.current })
+              }
+            }, 1500)
+          }
           break
 
         case 'audio':
