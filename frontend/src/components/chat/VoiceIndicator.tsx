@@ -5,26 +5,27 @@ interface Props {
   active: boolean
 }
 
-const H = 56
+const H = 32
 const CYCLES = 2.5
+const PHASE_OFFSETS = [0, Math.PI * 0.6, Math.PI * 1.2]
+const OPACITIES = [0.9, 0.55, 0.3]
 
 export default function VoiceIndicator({ audioLevelRef, active }: Props) {
   const svgRef = useRef<SVGSVGElement>(null)
-  const pathRef = useRef<SVGPathElement>(null)
-  const glowRef = useRef<SVGPathElement>(null)
+  const pathRefs = useRef<(SVGPathElement | null)[]>([null, null, null])
   const frameRef = useRef<number>(0)
   const phaseRef = useRef<number>(0)
   const smoothRef = useRef<number>(0)
   const breathRef = useRef<number>(0)
 
   useEffect(() => {
-    function buildPath(W: number, amplitude: number, phase: number): string {
-      const steps = 100
+    function buildPath(W: number, amplitude: number, phase: number, phaseOffset: number): string {
+      const steps = 80
       const cy = H / 2
       const parts: string[] = []
       for (let i = 0; i <= steps; i++) {
         const x = (i / steps) * W
-        const y = cy + amplitude * Math.sin((i / steps) * Math.PI * 2 * CYCLES + phase)
+        const y = cy + amplitude * Math.sin((i / steps) * Math.PI * 2 * CYCLES + phase + phaseOffset)
         parts.push(`${i === 0 ? 'M' : 'L'}${x.toFixed(1)},${y.toFixed(1)}`)
       }
       return parts.join(' ')
@@ -36,9 +37,8 @@ export default function VoiceIndicator({ audioLevelRef, active }: Props) {
       const dt = Math.min((now - last) / 1000, 0.05)
       last = now
 
-      const W = svgRef.current?.clientWidth ?? 280
+      const W = svgRef.current?.clientWidth ?? 200
 
-      // Smooth audio level: fast attack, slow decay
       const raw = active ? audioLevelRef.current : 0
       smoothRef.current = raw > smoothRef.current
         ? smoothRef.current * 0.25 + raw * 0.75
@@ -46,34 +46,23 @@ export default function VoiceIndicator({ audioLevelRef, active }: Props) {
 
       const level = smoothRef.current
 
-      // Breathing oscillation for idle
-      breathRef.current += dt * (active ? 1.0 : 0.6)
-      const breathAmp = active
-        ? 5 + 2 * Math.sin(breathRef.current)
-        : 3 + 2 * Math.sin(breathRef.current)
+      breathRef.current += dt * (active ? 0.9 : 0.5)
+      const breathAmp = 2.5 + 1.2 * Math.sin(breathRef.current)
 
-      // Wave speed and amplitude scale with voice
-      const speed = active ? 2.0 + level * 5 : 0.8
+      const speed = active ? 1.8 + level * 4 : 0.7
       phaseRef.current -= dt * speed
 
-      const amplitude = breathAmp + level * 22
+      const amplitude = breathAmp + level * 10
 
-      // Opacity and stroke weight scale with voice
-      const opacity = active ? 0.75 + level * 0.25 : 0.35
-      const strokeW = active ? 1.8 + level * 1.2 : 1.5
-      const glowOpacity = active ? 0.2 + level * 0.3 : 0.08
-
-      const d = buildPath(W, amplitude, phaseRef.current)
-
-      if (pathRef.current) {
-        pathRef.current.setAttribute('d', d)
-        pathRef.current.setAttribute('stroke-opacity', opacity.toFixed(2))
-        pathRef.current.setAttribute('stroke-width', strokeW.toFixed(1))
-      }
-      if (glowRef.current) {
-        glowRef.current.setAttribute('d', d)
-        glowRef.current.setAttribute('stroke-opacity', glowOpacity.toFixed(2))
-      }
+      pathRefs.current.forEach((path, i) => {
+        if (!path) return
+        const d = buildPath(W, amplitude, phaseRef.current, PHASE_OFFSETS[i])
+        path.setAttribute('d', d)
+        const opacity = active
+          ? OPACITIES[i] * (0.7 + level * 0.3)
+          : OPACITIES[i] * 0.4
+        path.setAttribute('stroke-opacity', opacity.toFixed(2))
+      })
 
       frameRef.current = requestAnimationFrame(animate)
     }
@@ -83,41 +72,18 @@ export default function VoiceIndicator({ audioLevelRef, active }: Props) {
   }, [active, audioLevelRef])
 
   return (
-    <div className="flex items-center justify-center px-6 py-1">
-      <svg
-        ref={svgRef}
-        width="100%"
-        height={H}
-        className="overflow-visible w-full"
-      >
-        <defs>
-          <filter id="voice-glow" x="-20%" y="-80%" width="140%" height="260%">
-            <feGaussianBlur stdDeviation="5" result="blur" />
-            <feMerge>
-              <feMergeNode in="blur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-        </defs>
-
-        {/* Glow layer */}
-        <path
-          ref={glowRef}
-          fill="none"
-          stroke="rgb(99,102,241)"
-          strokeWidth="10"
-          strokeLinecap="round"
-          filter="url(#voice-glow)"
-        />
-
-        {/* Main wave */}
-        <path
-          ref={pathRef}
-          fill="none"
-          stroke="rgb(99,102,241)"
-          strokeWidth="2"
-          strokeLinecap="round"
-        />
+    <div className="flex items-center justify-center px-8 py-1">
+      <svg ref={svgRef} width="100%" height={H} className="overflow-visible">
+        {PHASE_OFFSETS.map((_, i) => (
+          <path
+            key={i}
+            ref={el => { pathRefs.current[i] = el }}
+            fill="none"
+            stroke="rgb(99,102,241)"
+            strokeWidth={i === 0 ? '1.5' : '1'}
+            strokeLinecap="round"
+          />
+        ))}
       </svg>
     </div>
   )
