@@ -77,7 +77,7 @@ export default function HomePage() {
     if (!user || !dataLoaded) return
     if (agentSaveTimer.current) clearTimeout(agentSaveTimer.current)
     agentSaveTimer.current = setTimeout(() => {
-      void saveAgentConfigToFirestore(user.id, auraConfig)
+      saveAgentConfigToFirestore(user.id, auraConfig).catch(() => {})
     }, 1000)
     return () => { if (agentSaveTimer.current) clearTimeout(agentSaveTimer.current) }
   }, [auraConfig, user, dataLoaded])
@@ -87,7 +87,7 @@ export default function HomePage() {
     if (!user || !dataLoaded) return
     if (subAgentsSaveTimer.current) clearTimeout(subAgentsSaveTimer.current)
     subAgentsSaveTimer.current = setTimeout(() => {
-      void saveSubAgentsToFirestore(user.id, subAgents)
+      saveSubAgentsToFirestore(user.id, subAgents).catch(() => {})
     }, 1000)
     return () => { if (subAgentsSaveTimer.current) clearTimeout(subAgentsSaveTimer.current) }
   }, [subAgents, user, dataLoaded])
@@ -97,7 +97,7 @@ export default function HomePage() {
     if (!user || !dataLoaded) return
     if (triggerSaveTimer.current) clearTimeout(triggerSaveTimer.current)
     triggerSaveTimer.current = setTimeout(() => {
-      void saveTriggerConfigToFirestore(user.id, triggerConfig)
+      saveTriggerConfigToFirestore(user.id, triggerConfig).catch(() => {})
     }, 1000)
     return () => { if (triggerSaveTimer.current) clearTimeout(triggerSaveTimer.current) }
   }, [triggerConfig, user, dataLoaded])
