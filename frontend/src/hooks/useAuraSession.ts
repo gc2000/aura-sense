@@ -219,6 +219,8 @@ export function useAuraSession({
           // Gemini closed unexpectedly — reconnect just the Gemini session without
           // tearing down the WebSocket (avoids the slow auto-reconnect backoff delay).
           if (!intentionalDisconnectRef.current && lastConfigRef.current && wsRef.current?.isOpen()) {
+            // Reset so the greeting fires again on the next connection
+            hasGreetedRef.current = false
             setTimeout(() => {
               if (mountedRef.current && wsRef.current?.isOpen() && lastConfigRef.current) {
                 ws.send({ type: 'connect', config: lastConfigRef.current })
