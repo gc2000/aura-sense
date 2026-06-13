@@ -161,6 +161,11 @@ export class GeminiLiveSession {
       }
     }
 
+    // User interrupted Aura mid-response — frontend should clear audio queue
+    if (message.serverContent?.interrupted) {
+      this.send({ type: 'interrupted' })
+    }
+
     // Turn completion
     if (message.serverContent?.turnComplete) {
       this.send({ type: 'status', status: 'connected' })

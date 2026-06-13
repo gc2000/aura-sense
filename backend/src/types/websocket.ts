@@ -29,6 +29,7 @@ export type ClientMessage =
 export type ServerMessage =
   | { type: 'connected' }
   | { type: 'disconnected' }
+  | { type: 'interrupted' }
   | { type: 'audio'; data: string }                        // base64 PCM16 @ 24kHz mono
   | { type: 'transcript'; content: string; role: 'user' | 'assistant' }
   | { type: 'transcript_delta'; content: string }

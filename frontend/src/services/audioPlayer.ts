@@ -39,6 +39,16 @@ export class AudioPlayer {
     this.nextStartTime = startAt + buffer.duration
   }
 
+  interrupt(): void {
+    if (!this.audioContext) return
+    // Close current context to immediately stop all scheduled audio chunks
+    void this.audioContext.close()
+    // Create a fresh context ready for the next response
+    this.audioContext = new AudioContext({ sampleRate: OUTPUT_SAMPLE_RATE })
+    void this.audioContext.resume()
+    this.nextStartTime = this.audioContext.currentTime
+  }
+
   resume(): void {
     if (this.audioContext?.state === 'suspended') {
       void this.audioContext.resume()

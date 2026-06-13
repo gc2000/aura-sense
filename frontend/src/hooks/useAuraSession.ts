@@ -205,6 +205,11 @@ export function useAuraSession({
           ws.send({ type: 'text', content: '__greet__' })
           break
 
+        case 'interrupted':
+          playerRef.current?.interrupt()
+          updateStatus('listening')
+          break
+
         case 'disconnected':
           updateStatus('disconnected')
           // Gemini closed unexpectedly — reconnect just the Gemini session without
