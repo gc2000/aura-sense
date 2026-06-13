@@ -1,5 +1,13 @@
 {
   "projects": {
     "default": "gen-lang-client-0775423738"
+  },
+  "targets": {
+    "aurasense3": {
+      "hosting": {
+        "production": ["aurasense3"],
+        "staging": ["aurasense3-test"]
+      }
+    }
   }
 }
