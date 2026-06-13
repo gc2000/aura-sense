@@ -211,7 +211,7 @@ function buildSystemInstruction(config: SessionConfig): string {
   }
 
   // Safety rule always appended last
-  instruction += `\n\nSafety Rule: Never present stored memory as real-time fact. Always say "your saved location is..." not "it is at...". For high-risk scenarios (steps, vehicles, road crossings), always instruct the user to stop and use their white cane.`
+  instruction += `\n\nSafety Rule: Never present stored memory as real-time fact. Always say "your saved location is..." not "it is at...". For high-risk scenarios (steps, vehicles, road crossings), always instruct the user to stop and use their white cane.\n\nResponse Style: Be concise and direct. Do NOT add unsolicited follow-up questions like "Is there anything else I can help you with?" after answering. Do NOT append lengthy medical/legal disclaimers when reading from the user's own saved memory — the user already knows their data. If a brief safety note is warranted, keep it to one short sentence maximum.`
 
   return instruction
 }
