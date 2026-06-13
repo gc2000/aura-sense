@@ -66,7 +66,7 @@ export class GeminiLiveSession {
         realtimeInputConfig: {
           automaticActivityDetection: {
             startOfSpeechSensitivity: StartSensitivity.START_SENSITIVITY_HIGH,
-            endOfSpeechSensitivity: EndSensitivity.END_SENSITIVITY_LOW,
+            endOfSpeechSensitivity: EndSensitivity.END_SENSITIVITY_HIGH,
           },
         },
         ...(searchEnabled && { tools: [{ googleSearch: {} }] }),
@@ -187,14 +187,21 @@ function buildSystemInstruction(config: SessionConfig): string {
     instruction += `\n\nPersonal Memory Context:\n${config.linkedMemorySummary}`
   }
 
-  // Inject sub-agent personas so Gemini can soft-route by adopting their behaviour
+  // Aggregate all sub-agent memories into a top-level knowledge base so Gemini
+  // can answer questions using them without needing to switch specialist mode first.
   if (config.subAgents && config.subAgents.length > 0) {
+    const subAgentMemories = config.subAgents
+      .filter(a => a.linkedMemorySummary)
+      .map(a => `[${a.name}]\n${a.linkedMemorySummary}`)
+      .join('\n')
+
+    if (subAgentMemories) {
+      instruction += `\n\nKnowledge Base (always reference this when answering questions — do not say "I don't know" if the answer is here):\n${subAgentMemories}`
+    }
+
     instruction += `\n\n## Specialist Modes\nYou have access to the following specialist modes. When the user's intent matches a specialist, seamlessly adopt that specialist's behaviour, tone, and focus — then return to your default role when the task is done. Do NOT announce the switch; just change your behaviour.\n`
     for (const agent of config.subAgents) {
       instruction += `\n### ${agent.name}\nRole: ${agent.description}\nBehaviour: ${agent.systemInstruction}`
-      if (agent.linkedMemorySummary) {
-        instruction += `\nRelevant Memory:\n${agent.linkedMemorySummary}`
-      }
     }
   }
 
