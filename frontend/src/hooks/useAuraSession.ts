@@ -90,6 +90,7 @@ export function useAuraSession({
   const announcerRef = useRef<VoiceAnnouncer>(new VoiceAnnouncer())
   const mountedRef = useRef(true)
   const intentionalDisconnectRef = useRef(false)
+  const hasGreetedRef = useRef(false)
   // Last config sent — used to reconnect Gemini without tearing down the WebSocket
   const lastConfigRef = useRef<import('@/types/websocket').SessionConfig | null>(null)
 
@@ -201,8 +202,11 @@ export function useAuraSession({
             })
             cameraRef.current = cam
           }
-          // Trigger Aura to greet the user in her own voice
-          ws.send({ type: 'text', content: '__greet__' })
+          // Greet only on first connection, not on reconnects
+          if (!hasGreetedRef.current) {
+            hasGreetedRef.current = true
+            ws.send({ type: 'text', content: '__greet__' })
+          }
           break
 
         case 'interrupted':
@@ -289,6 +293,7 @@ export function useAuraSession({
 
   const disconnect = useCallback(() => {
     intentionalDisconnectRef.current = true
+    hasGreetedRef.current = false
     cancelReconnect()
     stopHeartbeatMonitor()
     wsRef.current?.send({ type: 'disconnect' })
