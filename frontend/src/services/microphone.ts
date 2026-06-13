@@ -3,15 +3,18 @@
 const SAMPLE_RATE = 16000
 
 export type AudioChunkCallback = (base64Chunk: string) => void
+export type AudioLevelCallback = (level: number) => void
 
 export class MicrophoneCapture {
   private stream: MediaStream | null = null
   private audioContext: AudioContext | null = null
   private processor: ScriptProcessorNode | null = null
   private onChunk: AudioChunkCallback
+  private onLevel?: AudioLevelCallback
 
-  constructor(onChunk: AudioChunkCallback) {
+  constructor(onChunk: AudioChunkCallback, onLevel?: AudioLevelCallback) {
     this.onChunk = onChunk
+    this.onLevel = onLevel
   }
 
   async start(): Promise<void> {
@@ -31,6 +34,13 @@ export class MicrophoneCapture {
       const pcm16 = float32ToPCM16(input)
       const base64 = arrayBufferToBase64(pcm16.buffer)
       this.onChunk(base64)
+
+      if (this.onLevel) {
+        let sum = 0
+        for (let i = 0; i < input.length; i++) sum += input[i] * input[i]
+        const rms = Math.sqrt(sum / input.length)
+        this.onLevel(Math.min(1, rms * 12))
+      }
     }
 
     source.connect(this.processor)

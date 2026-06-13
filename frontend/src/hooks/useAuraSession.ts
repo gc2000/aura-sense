@@ -85,6 +85,7 @@ export function useAuraSession({
   const wsRef = useRef<AuraWebSocketClient | null>(null)
   const micRef = useRef<MicrophoneCapture | null>(null)
   const playerRef = useRef<AudioPlayer | null>(null)
+  const audioLevelRef = useRef<number>(0)
   const cameraRef = useRef<CameraCapture | null>(null)
   const announcerRef = useRef<VoiceAnnouncer>(new VoiceAnnouncer())
   const mountedRef = useRef(true)
@@ -176,7 +177,10 @@ export function useAuraSession({
           startHeartbeatMonitor()
           // Start mic + player
           if (!micRef.current?.isActive()) {
-            const mic = new MicrophoneCapture((chunk) => ws.send({ type: 'audio', data: chunk }))
+            const mic = new MicrophoneCapture(
+              (chunk) => ws.send({ type: 'audio', data: chunk }),
+              (level) => { audioLevelRef.current = level },
+            )
             mic.start().catch((err: unknown) => {
               console.error('Microphone start error:', err)
               addMessage(makeMessage('system', 'Microphone access denied. You can still type.'))
@@ -324,6 +328,7 @@ export function useAuraSession({
     sendText,
     sendVideoFrame,
     resumeAudio,
+    audioLevelRef,
     clearMessages: () => setMessages([]),
   }
 }

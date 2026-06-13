@@ -4,6 +4,7 @@ import CameraView from '@/components/camera/CameraView'
 import ConversationPanel from '@/components/chat/ConversationPanel'
 import StatusBar from '@/components/chat/StatusBar'
 import ConnectButton from '@/components/chat/ConnectButton'
+import VoiceIndicator from '@/components/chat/VoiceIndicator'
 import ConfigPanel from '@/components/config/ConfigPanel'
 import ConversationHistory from '@/components/ConversationHistory'
 import { useAuraSession } from '@/hooks/useAuraSession'
@@ -102,7 +103,7 @@ export default function HomePage() {
   }, [triggerConfig, user, dataLoaded])
 
   // ── Gemini Live session ───────────────────────────────────────────────────
-  const { status, messages, connect, disconnect, clearMessages, resumeAudio } = useAuraSession({
+  const { status, messages, connect, disconnect, clearMessages, resumeAudio, audioLevelRef } = useAuraSession({
     auraConfig,
     subAgents,
     memories: memoryCategories,
@@ -329,6 +330,10 @@ export default function HomePage() {
 
         <div className="pointer-events-auto">
           <StatusBar status={status} agentName={auraConfig.name} />
+        </div>
+
+        <div className="pointer-events-none flex justify-center">
+          <VoiceIndicator audioLevelRef={audioLevelRef} active={isConnected} />
         </div>
 
         <div className="pointer-events-auto">
