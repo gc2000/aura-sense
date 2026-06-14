@@ -95,9 +95,9 @@ export default function LoginPage() {
           <button
             onClick={handleEnterDemo}
             disabled={loading}
-            className="w-full py-3 rounded-xl bg-aura-surface border border-aura-accent/40 text-sm text-aura-accent font-semibold tracking-widest uppercase hover:bg-aura-accent/10 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+            className="w-full py-3.5 rounded-xl bg-gradient-to-r from-cyan-500 via-violet-500 to-purple-600 text-white text-sm font-bold tracking-widest uppercase shadow-lg hover:opacity-90 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
           >
-            {loading ? 'Please wait...' : 'Enter Demo'}
+            {loading ? 'Please wait...' : '⚡ Enter Demo'}
           </button>
 
           {/* Divider */}
