@@ -73,9 +73,9 @@ export default function LoginPage() {
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-64 h-64 rounded-full bg-aura-accent/5 blur-3xl animate-breathe" />
       </div>
 
-      <div className="flex flex-col items-center justify-center flex-1 px-6 py-12 relative z-10">
+      <div className="flex flex-col items-center flex-1 px-6 pt-6 pb-4 relative z-10">
         {/* Logo + Brand */}
-        <div className="flex flex-col items-center mb-10">
+        <div className="flex flex-col items-center mb-6">
           <div className="relative mb-4">
             <div className="w-16 h-16 rounded-full bg-aura-accent/20 border border-aura-accent/40 flex items-center justify-center animate-pulse-glow">
               <span className="text-2xl font-bold text-aura-accent tracking-widest">A</span>
@@ -91,6 +91,22 @@ export default function LoginPage() {
 
         {/* Card */}
         <div className="glass-card w-full max-w-sm p-6">
+          {/* Demo login */}
+          <button
+            onClick={handleEnterDemo}
+            disabled={loading}
+            className="w-full py-3 rounded-xl bg-aura-surface border border-aura-accent/40 text-sm text-aura-accent font-semibold tracking-widest uppercase hover:bg-aura-accent/10 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+          >
+            {loading ? 'Please wait...' : 'Enter Demo'}
+          </button>
+
+          {/* Divider */}
+          <div className="flex items-center gap-3 my-5">
+            <div className="flex-1 h-px bg-aura-border" />
+            <span className="text-xs text-aura-text-muted tracking-widest">OR</span>
+            <div className="flex-1 h-px bg-aura-border" />
+          </div>
+
           {/* Tab toggle */}
           <div className="flex rounded-lg bg-aura-surface p-1 mb-6">
             {(['signin', 'register'] as Mode[]).map(m => (
@@ -189,24 +205,9 @@ export default function LoginPage() {
             Continue with Google
           </button>
 
-          {/* Divider */}
-          <div className="flex items-center gap-3 my-5">
-            <div className="flex-1 h-px bg-aura-border" />
-            <span className="text-xs text-aura-text-muted tracking-widest">DEMO</span>
-            <div className="flex-1 h-px bg-aura-border" />
-          </div>
-
-          {/* Demo login */}
-          <button
-            onClick={handleEnterDemo}
-            disabled={loading}
-            className="w-full py-3 rounded-xl bg-aura-surface border border-aura-accent/40 text-sm text-aura-accent font-semibold tracking-widest uppercase hover:bg-aura-accent/10 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-          >
-            {loading ? 'Please wait...' : 'Enter Demo'}
-          </button>
         </div>
 
-        <p className="text-xs text-aura-text-muted text-center mt-8 px-4 leading-relaxed">
+        <p className="text-xs text-aura-text-muted text-center mt-4 px-4 leading-relaxed">
           Aura assists blind and visually impaired users.{' '}
           <br />
           Not for real-time hazard navigation.
