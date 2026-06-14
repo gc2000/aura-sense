@@ -3,7 +3,7 @@
     "default": "gen-lang-client-0775423738"
   },
   "targets": {
-    "gen-lang-client-0775423738": {
+    "aurasense3": {
       "hosting": {
         "production": ["aurasense3"],
         "staging": ["aurasense3-test"]
